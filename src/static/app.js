@@ -20,6 +20,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   }
 
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
@@ -37,28 +46,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
+        const safeActivityName = escapeHtml(name);
+        const safeDescription = escapeHtml(details.description);
+        const safeSchedule = escapeHtml(details.schedule);
+
         const participantsList = details.participants
-          .map(
-            (email) => `
+          .map((email) => {
+            const safeEmail = escapeHtml(email);
+            return `
               <li>
-                <span>${email}</span>
+                <span>${safeEmail}</span>
                 <button
                   type="button"
                   class="remove-participant-btn"
-                  data-activity="${name}"
-                  data-email="${email}"
-                  aria-label="Unregister ${email} from ${name}"
+                  data-activity="${safeActivityName}"
+                  data-email="${safeEmail}"
+                  aria-label="Unregister ${safeEmail} from ${safeActivityName}"
                   title="Unregister"
                 >&times;</button>
               </li>
-            `
-          )
+            `;
+          })
           .join("");
 
         activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
+          <h4>${safeActivityName}</h4>
+          <p>${safeDescription}</p>
+          <p><strong>Schedule:</strong> ${safeSchedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <div class="participants-section">
             <strong>Participants:</strong>
